@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import isVarName from './isVarName.js'
+import createUniqueName from './uniqueName.js'
 
 function parse(gltf, { fileName = 'model', ...options } = {}) {
   if (gltf.isObject3D) {
@@ -24,11 +25,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     geometries: {},
   }
 
-  function uniqueName(attempt, index = 0) {
-    const newAttempt = index > 0 ? attempt + index : attempt
-    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined) return newAttempt
-    else return uniqueName(attempt, index + 1)
-  }
+  const uniqueName = createUniqueName()
 
   gltf.scene.traverse((child) => {
     if (child.isMesh) {
