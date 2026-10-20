@@ -16,7 +16,24 @@ export function rng(seed) {
 
 // Names that collide after parser.js strips every non-letter: numeric dbIds (empty base),
 // letter names that already carry a digit suffix, case variants and the empty name.
-const NAME_POOL = ['1001', '1002', '77', 'Part', 'part', 'Part1', 'Part2', 'Bolt', 'Bolt1', 'bolt_3', 'Foo', 'Foo1', '', 'A', 'A1', 'a2']
+const NAME_POOL = [
+  '1001',
+  '1002',
+  '77',
+  'Part',
+  'part',
+  'Part1',
+  'Part2',
+  'Bolt',
+  'Bolt1',
+  'bolt_3',
+  'Foo',
+  'Foo1',
+  '',
+  'A',
+  'A1',
+  'a2',
+]
 // Upstream prints `<instances.NAME>`, which is not valid JSX when NAME is empty or starts with a
 // digit (a numeric-only mesh name), so the instancing goldens draw only from names with letters.
 const LETTER_POOL = NAME_POOL.filter((name) => /^[a-zA-Z]/.test(name))

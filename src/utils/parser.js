@@ -263,7 +263,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        */
       if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
         if (keys1.length === 1 && keys2.length === 1 && keys1[0] === 'rotation' && keys2[0] === 'rotation') {
-          if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: double negative rotation)`)
+          if (options.debug && !silent)
+            console.error(`group ${obj.name} removed (aggressive: double negative rotation)`)
           obj.__removed = first.__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
@@ -300,7 +301,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       const isChildTransformed = keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
       const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
       if (obj.children.length === 1 && !first.__removed && !isChildTransformed && !hasOtherProps) {
-        if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
+        if (options.debug && !silent)
+          console.error(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
         keys1.forEach((key) => obj.children[0][key].copy(obj[key]))

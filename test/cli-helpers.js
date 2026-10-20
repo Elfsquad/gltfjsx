@@ -10,7 +10,9 @@ const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'cli.j
 // One triangle, its buffer inline as a data: URI. Node names are numeric dbIds, as the SVF fork
 // writes them, with extras.id carried into userData by --meta.
 const positions = Buffer.from(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]).buffer)
-export function triangleGltf({ bufferUri = 'data:application/octet-stream;base64,' + positions.toString('base64') } = {}) {
+export function triangleGltf({
+  bufferUri = 'data:application/octet-stream;base64,' + positions.toString('base64'),
+} = {}) {
   return {
     asset: { version: '2.0' },
     scenes: [{ nodes: [0] }],

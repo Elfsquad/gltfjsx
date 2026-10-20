@@ -51,7 +51,11 @@ test('an empty --url is a usage error (exit 2)', () => {
 })
 
 test('parse() uses the url option in the Instances component too', async () => {
-  const out = await parse(mixedScene(1, 12, { lettersOnly: true }), { fileName: 'model.gltf', url: URL, instanceall: true })
+  const out = await parse(mixedScene(1, 12, { lettersOnly: true }), {
+    fileName: 'model.gltf',
+    url: URL,
+    instanceall: true,
+  })
   assert.equal(out.split(`useGLTF('${URL}')`).length - 1, 1) // Instances; Model reads the context
   assert.equal(out.split(`useGLTF.preload('${URL}')`).length - 1, 1)
   assert.doesNotMatch(out, /'\/model\.gltf'/)

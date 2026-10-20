@@ -51,7 +51,14 @@ test('the legacy header text gives the bytes of parse() called as forge-convert-
   const gltf = await new Promise((resolve, reject) =>
     new GLTFStructureLoader().parse(JSON.stringify(triangleGltf()), '', resolve, reject)
   )
-  const legacy = await parse(gltf, { fileName: URL, keepnames: true, keepgroups: true, precision: 3, meta: true, shadows: true })
+  const legacy = await parse(gltf, {
+    fileName: URL,
+    keepnames: true,
+    keepgroups: true,
+    precision: 3,
+    meta: true,
+    shadows: true,
+  })
   const r = convert(['--header', LEGACY_HEADER, '--url', URL, ...PIPELINE])
   assert.equal(r.code, 0, r.stderr)
   assert.equal(r.jsx, legacy)

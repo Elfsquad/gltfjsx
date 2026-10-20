@@ -12,6 +12,10 @@ fs.mkdirSync(dir, { recursive: true })
 for (const [setName, { options, lettersOnly }] of Object.entries(OPTION_SETS))
   for (const seed of SEEDS)
     for (const size of SIZES) {
-      const out = await parse(mixedScene(seed, size, { lettersOnly }), { fileName: 'model.gltf', header: 'golden', ...options })
+      const out = await parse(mixedScene(seed, size, { lettersOnly }), {
+        fileName: 'model.gltf',
+        header: 'golden',
+        ...options,
+      })
       fs.writeFileSync(path.join(dir, `${setName}-${seed}-${size}.jsx`), out)
     }

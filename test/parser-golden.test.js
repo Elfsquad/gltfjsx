@@ -15,7 +15,11 @@ for (const [setName, { options, lettersOnly }] of Object.entries(OPTION_SETS))
     for (const size of SIZES) {
       const file = `${setName}-${seed}-${size}.jsx`
       test(`parse() output equals the upstream golden ${file}`, async () => {
-        const out = await parse(mixedScene(seed, size, { lettersOnly }), { fileName: 'model.gltf', header: 'golden', ...options })
+        const out = await parse(mixedScene(seed, size, { lettersOnly }), {
+          fileName: 'model.gltf',
+          header: 'golden',
+          ...options,
+        })
         assert.equal(out, fs.readFileSync(path.join(dir, file), 'utf8'))
       })
     }
