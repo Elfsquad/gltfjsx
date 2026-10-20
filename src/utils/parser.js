@@ -12,9 +12,11 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
 
   // `url` (the CLI's --url) is used verbatim, quoted as a JS string, so the model loads from exactly
   // that URL. Without it the URL is derived from fileName as before.
+  // Single-quoted, as prettier prints it, so the JSX left unformatted by --formatlimit (G6) loads
+  // `useGLTF('<url>')` in the same form.
   const urlLiteral =
     options.url !== undefined
-      ? JSON.stringify(options.url)
+      ? `'${JSON.stringify(options.url).slice(1, -1).replace(/\\"/g, '"').replace(/'/g, "\\'")}'`
       : `'${(fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName}'`
   const animations = gltf.animations
   const hasAnimations = animations.length > 0
@@ -529,6 +531,10 @@ useGLTF.preload(${urlLiteral})`
 
   if (!options.console) console.error(header)
   const output = header + '\n' + result
+  // G6: prettier needs about 190 bytes of heap per byte of JSX (5.8 GB for the 31 MB of a 133k-node
+  // model), far more than the rest of the run. Above the limit the JSX is returned as built: the
+  // same program, valid JSX, only not pretty-printed.
+  if (options.formatlimit !== undefined && output.length > options.formatlimit) return output + '\n'
   const formatted = prettier.format(output, {
     semi: false,
     printWidth: options.printwidth || 1000,

@@ -23,6 +23,8 @@ const cli = meow(
     --meta, -m          Include metadata (as userData)
     --shadows, s        Let meshes cast and receive shadows
     --printwidth, w     Prettier printWidth (default: 120)
+    --formatlimit       Skip prettier when the unformatted JSX is longer than this many
+                        characters (default: no limit); prettier's heap grows ~190x the JSX
     --precision, -p     Number of fractional digits (default: 3)
     --draco, -d         Draco binary path
     --root, -r          Sets directory from which .gltf file is served
@@ -53,6 +55,7 @@ const cli = meow(
       bones: { type: 'boolean', shortFlag: 'b', default: false },
       shadows: { type: 'boolean', shortFlag: 's' },
       printwidth: { type: 'number', shortFlag: 'p', default: 1000 },
+      formatlimit: { type: 'number' },
       meta: { type: 'boolean', shortFlag: 'm' },
       precision: { type: 'number', shortFlag: 'p', default: 3 },
       draco: { type: 'string', shortFlag: 'd' },
@@ -95,6 +98,8 @@ Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   }
   const file = cli.input[0]
   if (config.url !== undefined && config.url.trim() === '') usageError('--url must not be empty')
+  if (config.formatlimit !== undefined && !(Number.isInteger(config.formatlimit) && config.formatlimit >= 0))
+    usageError('--formatlimit must be a non-negative integer')
   // The header goes inside a /* */ comment: an empty one would fall back to the parser's default,
   // and a `*/` would end the comment early.
   if (cli.flags.header !== undefined && cli.flags.header === '') usageError('--header must not be empty')
