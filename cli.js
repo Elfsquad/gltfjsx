@@ -70,6 +70,9 @@ const cli = meow(
       console: { type: 'boolean', shortFlag: 'c' },
       debug: { type: 'boolean', shortFlag: 'D' },
     },
+    // A misspelt or unsupported flag (for example a newer flag on an older build) must fail with
+    // exit 2 rather than be ignored while the run exits 0.
+    allowUnknownFlags: false,
   }
 )
 
@@ -84,15 +87,21 @@ if (cli.input.length === 0) {
 Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   }
   const file = cli.input[0]
-  let nameExt = file.match(/[-_\w\d\s]+[.][\w]+$/i)[0]
-  let name = nameExt.split('.').slice(0, -1).join('.')
-  const output = config.output ?? name.charAt(0).toUpperCase() + name.slice(1) + (config.types ? '.tsx' : '.jsx')
   const showLog = (log) => {
     console.info('log:', log)
   }
   try {
+    const output = config.output ?? defaultOutput(file, config.types)
     const response = await gltfjsx(file, output, { ...config, showLog, timeout: 0, delay: 1 })
   } catch (e) {
-    console.error(e)
+    console.error(config.debug ? e : `gltfjsx: ${e?.message ?? e}`)
+    process.exitCode = 1
   }
+}
+
+function defaultOutput(file, types) {
+  const nameExt = file.match(/[-_\w\d\s]+[.][\w]+$/i)
+  if (!nameExt) throw new Error(`cannot derive an output name from ${file}; pass --output`)
+  const name = nameExt[0].split('.').slice(0, -1).join('.')
+  return name.charAt(0).toUpperCase() + name.slice(1) + (types ? '.tsx' : '.jsx')
 }
