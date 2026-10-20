@@ -4,7 +4,7 @@
   "description": "GLTF to JSX converter",
   "scripts": {
     "build": "rollup -c",
-    "test": "node src/test"
+    "test": "node src/test && node --test test/*.test.js"
   },
   "type": "module",
   "keywords": [
