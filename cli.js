@@ -26,6 +26,7 @@ const cli = meow(
     --precision, -p     Number of fractional digits (default: 3)
     --draco, -d         Draco binary path
     --root, -r          Sets directory from which .gltf file is served
+    --url               URL to load the model from, used verbatim in useGLTF() and preload()
     --instance, -i      Instance re-occuring geometry
     --instanceall, -I   Instance every geometry (for cheaper re-use)
     --exportdefault, -E Use default export
@@ -54,6 +55,7 @@ const cli = meow(
       precision: { type: 'number', shortFlag: 'p', default: 3 },
       draco: { type: 'string', shortFlag: 'd' },
       root: { type: 'string', shortFlag: 'r' },
+      url: { type: 'string' },
       instance: { type: 'boolean', shortFlag: 'i' },
       instanceall: { type: 'boolean', shortFlag: 'I' },
       transform: { type: 'boolean', shortFlag: 'T' },
@@ -87,6 +89,7 @@ if (cli.input.length === 0) {
 Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   }
   const file = cli.input[0]
+  if (config.url !== undefined && config.url.trim() === '') usageError('--url must not be empty')
   // Logs go to stderr: stdout carries the JSX in --console mode.
   const showLog = (log) => {
     console.error('log:', log)
@@ -105,4 +108,10 @@ function defaultOutput(file, types) {
   if (!nameExt) throw new Error(`cannot derive an output name from ${file}; pass --output`)
   const name = nameExt[0].split('.').slice(0, -1).join('.')
   return name.charAt(0).toUpperCase() + name.slice(1) + (types ? '.tsx' : '.jsx')
+}
+
+// Exit 2 for a bad command line, as meow does for an unknown flag.
+function usageError(message) {
+  console.error(`gltfjsx: ${message}`)
+  process.exit(2)
 }

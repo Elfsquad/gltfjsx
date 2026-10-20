@@ -10,7 +10,12 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     gltf = { scene: gltf, animations: [], parser: { json: {} } }
   }
 
-  const url = (fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName
+  // `url` (the CLI's --url) is used verbatim, quoted as a JS string, so the model loads from exactly
+  // that URL. Without it the URL is derived from fileName as before.
+  const urlLiteral =
+    options.url !== undefined
+      ? JSON.stringify(options.url)
+      : `'${(fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName}'`
   const animations = gltf.animations
   const hasAnimations = animations.length > 0
 
@@ -474,7 +479,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
         export function Instances({ children, ...props }${options.types ? ': JSX.IntrinsicElements["group"]' : ''}) {
-          const { nodes } = useGLTF('${url}'${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+          const { nodes } = useGLTF(${urlLiteral}${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
             options.types ? ' as GLTFResult' : ''
           }
           const instances = React.useMemo(() => ({
@@ -501,7 +506,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
             hasAnimations ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};` : ''
           } ${
             !options.instanceall
-              ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${hasAnimations ? ', animations' : ''}} = useGLTF('${url}'${
+              ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${hasAnimations ? ', animations' : ''}} = useGLTF(${urlLiteral}${
                   options.draco ? `, ${JSON.stringify(options.draco)}` : ''
                 })${!hasPrimitives && options.types ? ' as GLTFResult' : ''}${
                   hasPrimitives
@@ -518,7 +523,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
           )
         }
 
-useGLTF.preload('${url}')`
+useGLTF.preload(${urlLiteral})`
 
   if (!options.console) console.error(header)
   const output = header + '\n' + result
