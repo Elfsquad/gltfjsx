@@ -87,8 +87,9 @@ if (cli.input.length === 0) {
 Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   }
   const file = cli.input[0]
+  // Logs go to stderr: stdout carries the JSX in --console mode.
   const showLog = (log) => {
-    console.info('log:', log)
+    console.error('log:', log)
   }
   try {
     const output = config.output ?? defaultOutput(file, config.types)

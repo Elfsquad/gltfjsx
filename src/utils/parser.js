@@ -236,7 +236,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        *    <mesh geometry={nodes.foo} material={materials.bar} />
        */
       if (result === oldResult || obj.children.length === 0) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (empty)`)
+        if (options.debug && !silent) console.error(`group ${obj.name} removed (empty)`)
         obj.__removed = true
         return children
       }
@@ -258,7 +258,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        */
       if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
         if (keys1.length === 1 && keys2.length === 1 && keys1[0] === 'rotation' && keys2[0] === 'rotation') {
-          if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
+          if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: double negative rotation)`)
           obj.__removed = first.__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
@@ -277,7 +277,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
         if (keys1.length === 1 && keys2.length > 1 && keys1[0] === 'rotation' && keys2.includes('rotation')) {
           if (options.debug && !silent)
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
+            console.error(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
           obj.__removed = true
           // Remove rotation from first child
           first.rotation.set(0, 0, 0)
@@ -295,7 +295,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       const isChildTransformed = keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
       const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
       if (obj.children.length === 1 && !first.__removed && !isChildTransformed && !hasOtherProps) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
+        if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
         keys1.forEach((key) => obj.children[0][key].copy(obj[key]))
@@ -318,7 +318,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
         if (type !== 'group' && type !== 'object3D') empty.push(o)
       })
       if (!empty.length) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: lack of content)`)
+        if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: lack of content)`)
         empty.forEach((child) => (child.__removed = true))
         return ''
       }
@@ -402,8 +402,9 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     } else return ''
   }
 
+  // Debug output and the header echo below go to stderr: stdout carries the JSX in --console mode.
   function p(obj, line) {
-    console.log(
+    console.error(
       [...new Array(line * 2)].map(() => ' ').join(''),
       obj.type,
       obj.name,
@@ -519,7 +520,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
 
 useGLTF.preload('${url}')`
 
-  if (!options.console) console.log(header)
+  if (!options.console) console.error(header)
   const output = header + '\n' + result
   const formatted = prettier.format(output, {
     semi: false,
