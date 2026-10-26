@@ -42,8 +42,11 @@ export default function (file, output, options) {
     return relativePath
   }
 
+  // Settles exactly once: resolves after the JSX is written (or printed with --console), rejects on
+  // a missing input, an unreadable or unparsable file, a loader error or a parser error. The
+  // output file is written only on success, so a failed run leaves no empty or partial file.
   return new Promise((resolve, reject) => {
-    async function run(stream) {
+    async function run() {
       let size = ''
       // Process GLTF
       if (output && path.parse(output).ext === '.tsx') options.types = true
@@ -61,29 +64,43 @@ export default function (file, output, options) {
       }
       const filePath = getRelativeFilePath(file)
       const data = fs.readFileSync(file)
+      checkExternalBuffers(data, file)
       const arrayBuffer = toArrayBuffer(data)
       gltfLoader.parse(
         arrayBuffer,
         '',
         async (gltf) => {
-          const output = await parse(gltf, { fileName: filePath, size, ...options })
-          if (options.console) console.log(output)
-          else stream?.write(output)
-          stream?.end()
-          resolve()
+          try {
+            const jsx = await parse(gltf, { fileName: filePath, size, ...options })
+            if (options.console) console.log(jsx)
+            else fs.writeFileSync(path.resolve(output), jsx)
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
         },
-        (reason) => console.log(reason)
+        (reason) => reject(reason instanceof Error ? reason : new Error(String(reason)))
       )
     }
 
-    if (options.console) {
-      run()
-    } else {
-      const stream = fs.createWriteStream(path.resolve(output))
-      stream.once('open', async () => {
-        if (!fs.existsSync(file)) reject(file + ' does not exist.')
-        else run(stream)
-      })
-    }
+    if (!fs.existsSync(file)) reject(new Error(file + ' does not exist.'))
+    else run().catch(reject)
   })
+}
+
+// The structure loader never reads buffer bytes, so a .gltf whose external buffer is missing
+// would still print JSX and exit 0 for a model that cannot load. Check the files exist.
+function checkExternalBuffers(data, file) {
+  if (data.subarray(0, 4).toString('latin1') === 'glTF') return // GLB: the loader checks it
+  let json
+  try {
+    json = JSON.parse(data.toString('utf8'))
+  } catch (e) {
+    throw new Error(`${file} is not valid glTF JSON: ${e.message}`)
+  }
+  for (const buffer of json.buffers ?? []) {
+    if (typeof buffer.uri !== 'string' || buffer.uri.startsWith('data:')) continue
+    const bufferPath = path.resolve(path.dirname(file), decodeURIComponent(buffer.uri))
+    if (!fs.existsSync(bufferPath)) throw new Error(`${file}: buffer "${buffer.uri}" does not exist.`)
+  }
 }

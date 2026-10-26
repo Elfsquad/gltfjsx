@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
 import isVarName from './isVarName.js'
+import createUniqueName from './uniqueName.js'
 
 function parse(gltf, { fileName = 'model', ...options } = {}) {
   if (gltf.isObject3D) {
@@ -9,7 +10,14 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     gltf = { scene: gltf, animations: [], parser: { json: {} } }
   }
 
-  const url = (fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName
+  // `url` (the CLI's --url) is used verbatim, quoted as a JS string, so the model loads from exactly
+  // that URL. Without it the URL is derived from fileName as before.
+  // Single-quoted, as prettier prints it, so the JSX left unformatted by --formatlimit (G6) loads
+  // `useGLTF('<url>')` in the same form.
+  const urlLiteral =
+    options.url !== undefined
+      ? `'${JSON.stringify(options.url).slice(1, -1).replace(/\\"/g, '"').replace(/'/g, "\\'")}'`
+      : `'${(fileName.toLowerCase().startsWith('http') ? '' : '/') + fileName}'`
   const animations = gltf.animations
   const hasAnimations = animations.length > 0
 
@@ -24,11 +32,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     geometries: {},
   }
 
-  function uniqueName(attempt, index = 0) {
-    const newAttempt = index > 0 ? attempt + index : attempt
-    if (Object.values(duplicates.geometries).find(({ name }) => name === newAttempt) === undefined) return newAttempt
-    else return uniqueName(attempt, index + 1)
-  }
+  const uniqueName = createUniqueName()
 
   gltf.scene.traverse((child) => {
     if (child.isMesh) {
@@ -239,7 +243,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        *    <mesh geometry={nodes.foo} material={materials.bar} />
        */
       if (result === oldResult || obj.children.length === 0) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (empty)`)
+        if (options.debug && !silent) console.error(`group ${obj.name} removed (empty)`)
         obj.__removed = true
         return children
       }
@@ -261,7 +265,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        */
       if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
         if (keys1.length === 1 && keys2.length === 1 && keys1[0] === 'rotation' && keys2[0] === 'rotation') {
-          if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: double negative rotation)`)
+          if (options.debug && !silent)
+            console.error(`group ${obj.name} removed (aggressive: double negative rotation)`)
           obj.__removed = first.__removed = true
           children = ''
           if (first.children) first.children.forEach((child) => (children += print(child, true)))
@@ -280,7 +285,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       if (obj.children.length === 1 && getType(first) === type && equalOrNegated(obj.rotation, first.rotation)) {
         if (keys1.length === 1 && keys2.length > 1 && keys1[0] === 'rotation' && keys2.includes('rotation')) {
           if (options.debug && !silent)
-            console.log(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
+            console.error(`group ${obj.name} removed (aggressive: double negative rotation w/ props)`)
           obj.__removed = true
           // Remove rotation from first child
           first.rotation.set(0, 0, 0)
@@ -298,7 +303,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       const isChildTransformed = keys2.includes('position') || keys2.includes('rotation') || keys2.includes('scale')
       const hasOtherProps = keys1.some((key) => !['position', 'scale', 'rotation'].includes(key))
       if (obj.children.length === 1 && !first.__removed && !isChildTransformed && !hasOtherProps) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
+        if (options.debug && !silent)
+          console.error(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
         keys1.forEach((key) => obj.children[0][key].copy(obj[key]))
@@ -321,7 +327,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
         if (type !== 'group' && type !== 'object3D') empty.push(o)
       })
       if (!empty.length) {
-        if (options.debug && !silent) console.log(`group ${obj.name} removed (aggressive: lack of content)`)
+        if (options.debug && !silent) console.error(`group ${obj.name} removed (aggressive: lack of content)`)
         empty.forEach((child) => (child.__removed = true))
         return ''
       }
@@ -405,8 +411,9 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     } else return ''
   }
 
+  // Debug output and the header echo below go to stderr: stdout carries the JSX in --console mode.
   function p(obj, line) {
-    console.log(
+    console.error(
       [...new Array(line * 2)].map(() => ' ').join(''),
       obj.type,
       obj.name,
@@ -448,7 +455,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     // 2nd pass to eliminate hard to swat left-overs
     scene = print(gltf.scene)
   } catch (e) {
-    console.log('Error while parsing glTF', e)
+    throw new Error('Error while parsing glTF: ' + e.message, { cause: e })
   }
   const header = `/*
 ${options.header ? options.header : 'Auto-generated by: https://github.com/pmndrs/gltfjsx'} ${
@@ -476,7 +483,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
         const context = React.createContext(${options.types ? '{} as ContextType' : ''})
 
         export function Instances({ children, ...props }${options.types ? ': JSX.IntrinsicElements["group"]' : ''}) {
-          const { nodes } = useGLTF('${url}'${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
+          const { nodes } = useGLTF(${urlLiteral}${options.draco ? `, ${JSON.stringify(options.draco)}` : ''})${
             options.types ? ' as GLTFResult' : ''
           }
           const instances = React.useMemo(() => ({
@@ -503,7 +510,7 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
             hasAnimations ? `const group = ${options.types ? 'React.useRef<THREE.Group>()' : 'React.useRef()'};` : ''
           } ${
             !options.instanceall
-              ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${hasAnimations ? ', animations' : ''}} = useGLTF('${url}'${
+              ? `const { ${!hasPrimitives ? `nodes, materials` : 'scene'} ${hasAnimations ? ', animations' : ''}} = useGLTF(${urlLiteral}${
                   options.draco ? `, ${JSON.stringify(options.draco)}` : ''
                 })${!hasPrimitives && options.types ? ' as GLTFResult' : ''}${
                   hasPrimitives
@@ -520,10 +527,14 @@ ${parseExtras(gltf.parser.json.asset && gltf.parser.json.asset.extras)}*/`
           )
         }
 
-useGLTF.preload('${url}')`
+useGLTF.preload(${urlLiteral})`
 
-  if (!options.console) console.log(header)
+  if (!options.console) console.error(header)
   const output = header + '\n' + result
+  // G6: prettier needs about 190 bytes of heap per byte of JSX (5.8 GB for the 31 MB of a 133k-node
+  // model), far more than the rest of the run. Above the limit the JSX is returned as built: the
+  // same program, valid JSX, only not pretty-printed.
+  if (options.formatlimit !== undefined && output.length > options.formatlimit) return output + '\n'
   const formatted = prettier.format(output, {
     semi: false,
     printWidth: options.printwidth || 1000,
