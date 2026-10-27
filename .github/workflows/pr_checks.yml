@@ -25,6 +25,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # The automatic yarn cache runs `yarn cache dir` before corepack is enabled, which fails
+          # on the runner's global Yarn 1 because package.json pins yarn@4.
+          package-manager-cache: false
       - run: corepack enable
       - run: yarn install --immutable
       # Runtime dependencies only: they are what ships to consumers. Mirrors forge-convert-server.
