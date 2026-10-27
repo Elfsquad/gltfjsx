@@ -90,3 +90,18 @@ test('no input prints the help and exits 0', () => {
   assert.equal(r.code, 0)
   assert.match(r.stdout, /Usage/)
 })
+
+test('--debug prints the whole error, stack included', () => {
+  const dir = tempDir()
+  const r = run([path.join(dir, 'missing.gltf'), '--output', path.join(dir, 'out.jsx'), '--debug'])
+  assert.equal(r.code, 1)
+  assert.match(r.stderr, /Error: .*missing\.gltf does not exist\.\n\s+at /)
+})
+
+test('without --output the file is named after the input, .tsx with --types', () => {
+  const dir = tempDir()
+  assert.equal(run([writeModel(dir, 'my-model.gltf')], { cwd: dir }).code, 0)
+  assert.ok(fs.existsSync(path.join(dir, 'My-model.jsx')))
+  assert.equal(run([writeModel(dir, 'my-model.gltf'), '--types'], { cwd: dir }).code, 0)
+  assert.ok(fs.existsSync(path.join(dir, 'My-model.tsx')))
+})

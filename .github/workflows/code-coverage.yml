@@ -1,0 +1,83 @@
+name: Code Coverage
+
+# Generates a Cobertura XML coverage report from the node:test suite (via c8, which also follows
+# the CLI child processes the tests spawn) and uploads it to GitHub Code Quality. Coverage is
+# compared against the default branch, so both the push (baseline) and pull_request (comparison)
+# triggers are required.
+#
+# Note: test pass/fail is gated by pr_checks.yml. This job only produces the coverage report (c8
+# writes it even when a test fails), hence the test step uses continue-on-error to keep the upload
+# running.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Only the head commit of a branch can carry a coverage report: the code-coverage API accepts an
+# upload for a superseded commit but returns no upload id, which fails the upload step. Cancel
+# the outdated run rather than let it reach that point.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  code-quality: write
+
+jobs:
+  coverage:
+    name: c8 Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the PR head commit (not the merge commit) so coverage line numbers map
+      # correctly onto the diff.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Run tests with coverage
+        continue-on-error: true
+        run: yarn test:coverage
+      - name: Write coverage summary
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        run: |
+          node --input-type=module >> "$GITHUB_STEP_SUMMARY" <<'JS'
+          import { readFileSync } from "node:fs";
+          const { total } = JSON.parse(readFileSync("coverage/coverage-summary.json", "utf8"));
+          const rows = ["statements", "branches", "functions", "lines"].map(
+            (key) => `| ${key} | ${total[key].pct}% | ${total[key].covered}/${total[key].total} |`
+          );
+          console.log(["## Coverage", "", "| Metric | % | Covered |", "|---|---|---|", ...rows].join("\n"));
+          JS
+      - name: Upload coverage report artifact
+        if: always() && hashFiles('coverage/cobertura-coverage.xml') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: |
+            coverage/
+            !coverage/tmp/
+          retention-days: 14
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: coverage/cobertura-coverage.xml
+          language: JavaScript
+          label: code-coverage/c8
+          # Report a failed upload (e.g. Code Quality not enabled for this repository) as a
+          # warning; the artifact and job summary above still carry the coverage report.
+          fail-on-error: false
+      # Last, so the reports above are uploaded even when coverage drops. src/bin (the vendored
+      # three.js loaders) is excluded in package.json; everything else must stay fully covered.
+      - name: Check coverage is 100%
+        run: yarn c8 check-coverage --100

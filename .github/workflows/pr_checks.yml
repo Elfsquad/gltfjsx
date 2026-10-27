@@ -1,0 +1,38 @@
+name: 'PR Checks'
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Format, Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: yarn install --immutable
+      # Runtime dependencies only: they are what ships to consumers. Mirrors forge-convert-server.
+      - run: yarn npm audit --environment production --recursive --severity moderate --no-deprecations
+      - run: yarn fmt:check
+      # Builds dist/ the same way `prepack` does before publish.yml publishes it.
+      - run: yarn build
+      # Includes the golden check: test/parser-golden.test.js compares the JSX for the scenes in
+      # test/scenes.js against test/golden and fails when the output differs.
+      - run: yarn test
+      - run: yarn test:scale

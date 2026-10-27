@@ -1,0 +1,8 @@
+# Generated output: goldens are byte-compared by the tests, the rest is build or tool output.
+test/golden/
+dist/
+coverage/
+.yarn/
+yarn.lock
+CHANGELOG.md
+.release-please-manifest.json

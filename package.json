@@ -5,7 +5,10 @@
   "scripts": {
     "build": "rollup -c",
     "test": "node src/test && node --test test/*.test.js",
+    "test:coverage": "c8 npm test",
     "test:scale": "node --max-old-space-size=6144 --test test/scale/*.test.js",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
     "prepack": "npm run build"
   },
   "type": "module",
@@ -86,6 +89,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "c8": "^12.0.0",
     "chalk": "^5.3.0",
     "fast-glob": "^3.3.2",
     "fs-extra": "^11.2.0",
@@ -109,5 +113,21 @@
     "type": "opencollective",
     "url": "https://opencollective.com/react-three-fiber"
   },
-  "packageManager": "yarn@4.4.0+sha256.5f228cb28f2edb97d8c3b667fb7b2fdcf06c46798e25ea889dad9e0b4bc2e2c1"
+  "packageManager": "yarn@4.4.0+sha256.5f228cb28f2edb97d8c3b667fb7b2fdcf06c46798e25ea889dad9e0b4bc2e2c1",
+  "c8": {
+    "all": true,
+    "include": [
+      "cli.js",
+      "src/**"
+    ],
+    "exclude": [
+      "src/bin/**"
+    ],
+    "reporter": [
+      "text-summary",
+      "json-summary",
+      "cobertura"
+    ],
+    "reportsDir": "coverage"
+  }
 }

@@ -45,7 +45,9 @@ export default function (file, output, options) {
   // Settles exactly once: resolves after the JSX is written (or printed with --console), rejects on
   // a missing input, an unreadable or unparsable file, a loader error or a parser error. The
   // output file is written only on success, so a failed run leaves no empty or partial file.
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
+    // Always an Error, so callers can print reason.message.
+    const reject = (reason) => _reject(reason instanceof Error ? reason : new Error(String(reason)))
     async function run() {
       let size = ''
       // Process GLTF
@@ -79,7 +81,7 @@ export default function (file, output, options) {
             reject(e)
           }
         },
-        (reason) => reject(reason instanceof Error ? reason : new Error(String(reason)))
+        reject
       )
     }
 
