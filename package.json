@@ -51,9 +51,9 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@gltf-transform/core": "4.1.0",
-    "@gltf-transform/extensions": "4.1.0",
-    "@gltf-transform/functions": "4.1.0",
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@node-loader/babel": "^2.0.1",
     "draco3dgltf": "^1.5.7",
     "is-var-name": "^2.0.0",
@@ -70,13 +70,6 @@
     "jsdom-global": "^3.0.2",
     "libvips": "0.0.2",
     "sharp": "^0.35.5"
-  },
-  "resolutions": {
-    "@gltf-transform/core": "4.0.8",
-    "@gltf-transform/extensions": "4.0.8",
-    "@gltf-transform/functions": "4.0.8",
-    "ndarray-pixels/sharp": "^0.35.5",
-    "three-stdlib/fflate": "^0.8.3"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
