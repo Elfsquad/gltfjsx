@@ -104,15 +104,11 @@ Command: npx gltfjsx@${packageJson.version} ${process.argv.slice(2).join(' ')}`,
   // and a `*/` would end the comment early.
   if (cli.flags.header !== undefined && cli.flags.header === '') usageError('--header must not be empty')
   if (cli.flags.header?.includes('*/')) usageError('--header must not contain */')
-  // Logs go to stderr: stdout carries the JSX in --console mode.
-  const showLog = (log) => {
-    console.error('log:', log)
-  }
   try {
     const output = config.output ?? defaultOutput(file, config.types)
-    const response = await gltfjsx(file, output, { ...config, showLog, timeout: 0, delay: 1 })
+    const response = await gltfjsx(file, output, { ...config, timeout: 0, delay: 1 })
   } catch (e) {
-    console.error(config.debug ? e : `gltfjsx: ${e?.message ?? e}`)
+    console.error(config.debug ? e : `gltfjsx: ${e.message}`)
     process.exitCode = 1
   }
 }

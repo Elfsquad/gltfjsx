@@ -120,6 +120,9 @@
       "cli.js",
       "src/**"
     ],
+    "exclude": [
+      "src/bin/**"
+    ],
     "reporter": [
       "text-summary",
       "json-summary",

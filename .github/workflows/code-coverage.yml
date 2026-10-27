@@ -77,3 +77,7 @@ jobs:
           # Report a failed upload (e.g. Code Quality not enabled for this repository) as a
           # warning; the artifact and job summary above still carry the coverage report.
           fail-on-error: false
+      # Last, so the reports above are uploaded even when coverage drops. src/bin (the vendored
+      # three.js loaders) is excluded in package.json; everything else must stay fully covered.
+      - name: Check coverage is 100%
+        run: yarn c8 check-coverage --100

@@ -49,7 +49,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   gltf.scene.traverse((child) => {
     if (child.isMesh) {
       if (child.geometry) {
-        const key = child.geometry.uuid + child.material?.name ?? ''
+        // getInfo() looks the key up as uuid + material.name: a mesh without a material gets 'undefined'
+        const key = child.geometry.uuid + child.material?.name
         if (!duplicates.geometries[key]) {
           let name = (child.name || 'Part').replace(/[^a-zA-Z]/g, '')
           name = name.charAt(0).toUpperCase() + name.slice(1)
@@ -89,9 +90,9 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       if (abs === Math.round(parseFloat(Math.PI / i) * 100000))
         return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
     }
-    for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(parseFloat(Math.PI * i) * 100000))
-        return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' * ' + i : ''}`
+    // From 2: Math.PI * 1 is Math.PI / 1, printed by the loop above
+    for (let i = 2; i <= 10; i++) {
+      if (abs === Math.round(parseFloat(Math.PI * i) * 100000)) return `${number < 0 ? '-' : ''}Math.PI * ${i}`
     }
     return rNbr(number)
   }
@@ -269,7 +270,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
             console.error(`group ${obj.name} removed (aggressive: double negative rotation)`)
           obj.__removed = first.__removed = true
           children = ''
-          if (first.children) first.children.forEach((child) => (children += print(child, true)))
+          first.children.forEach((child) => (children += print(child, true)))
           return children
         }
       }
