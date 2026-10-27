@@ -1362,9 +1362,9 @@ __metadata:
     "@babel/preset-env": "npm:7.29.7"
     "@babel/preset-react": "npm:7.29.7"
     "@babel/preset-typescript": "npm:^7.29.7"
-    "@gltf-transform/core": "npm:4.1.0"
-    "@gltf-transform/extensions": "npm:4.1.0"
-    "@gltf-transform/functions": "npm:4.1.0"
+    "@gltf-transform/core": "npm:^4.5.1"
+    "@gltf-transform/extensions": "npm:^4.5.1"
+    "@gltf-transform/functions": "npm:^4.5.1"
     "@node-loader/babel": "npm:^2.0.1"
     "@rollup/plugin-babel": "npm:^6.0.4"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
@@ -1422,36 +1422,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gltf-transform/core@npm:4.0.8":
-  version: 4.0.8
-  resolution: "@gltf-transform/core@npm:4.0.8"
+"@gltf-transform/core@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "@gltf-transform/core@npm:4.5.1"
   dependencies:
-    property-graph: "npm:^2.0.0"
-  checksum: 10c0/4bb834d74120117f3b16fa4ed502648886d1abb4b0547bc530c3a6199c07ee197e88fe0fd409e4279147d7a503fb6a1f3a189424793eba50f7440216fb71425a
+    property-graph: "npm:^4.1.0"
+  checksum: 10c0/b131261482fbd8ee359eb692053e9ce212617d8d315229f0002ca3fc28052c86182f879749f7479ee53a87374ebc8e5f53506a21617a883ed7be1d6e2fdeccec
   languageName: node
   linkType: hard
 
-"@gltf-transform/extensions@npm:4.0.8":
-  version: 4.0.8
-  resolution: "@gltf-transform/extensions@npm:4.0.8"
+"@gltf-transform/extensions@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "@gltf-transform/extensions@npm:4.5.1"
   dependencies:
-    "@gltf-transform/core": "npm:^4.0.8"
-    ktx-parse: "npm:^0.7.0"
-  checksum: 10c0/7a454a30a5dc197fc5b260c2f6935a14224e94f33916e057254ffc27e0deb6ae84ad2cf137d7b9aebec0b13b7fe9ef7f69646a7142ed90909119117715563ecc
+    "@gltf-transform/core": "npm:^4.5.1"
+    ktx-parse: "npm:^1.1.0"
+  checksum: 10c0/e293c106ab01f21c45212e9a596b271eaccb97bc5e73f7c0b1bd7d93eda936b4b2ee3beaabf4f3d860a16fc82572421795125ab1841d6f4686860dffed21ba3b
   languageName: node
   linkType: hard
 
-"@gltf-transform/functions@npm:4.0.8":
-  version: 4.0.8
-  resolution: "@gltf-transform/functions@npm:4.0.8"
+"@gltf-transform/functions@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "@gltf-transform/functions@npm:4.5.1"
   dependencies:
-    "@gltf-transform/core": "npm:^4.0.8"
-    "@gltf-transform/extensions": "npm:^4.0.8"
-    ktx-parse: "npm:^0.7.0"
+    "@gltf-transform/core": "npm:^4.5.1"
+    "@gltf-transform/extensions": "npm:^4.5.1"
+    ktx-parse: "npm:^1.1.0"
     ndarray: "npm:^1.0.19"
     ndarray-lanczos: "npm:^0.3.0"
-    ndarray-pixels: "npm:^4.1.0"
-  checksum: 10c0/cc121e7104d6e48271619389dd27663c891521b8e9879d31c6c3c3fb3226023c64ff4e7564bd4b1499dde0d4e6f672ac3514c379fa7b23dee03d8d0003c3387b
+    ndarray-pixels: "npm:^5.2.0"
+  checksum: 10c0/57e85de0edc70ff638569ee0d70aac869c315d1b42d762601c99968a6f53c0230cb183aed984d594d8d8ecaf6b077ab1614fa7879d3609b6e905e80aab169157
   languageName: node
   linkType: hard
 
@@ -2541,10 +2541,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.3":
-  version: 0.8.3
-  resolution: "fflate@npm:0.8.3"
-  checksum: 10c0/eab181ca37f5348ae76d4b6f840e0026e30220e33153289ac942222d8b9638237d486507dbcc09878d724095bd354993a2ee48bbee99c8f2c6440d4448719aa7
+"fflate@npm:^0.6.9":
+  version: 0.6.11
+  resolution: "fflate@npm:0.6.11"
+  checksum: 10c0/5bbf4a7557db6f65b25c7bb12621008c400a116ec1cc65bea78abd75c0c049d8a22fb92f0a59fbf9a7ad1a24a47d2112ce10fd817d08db0e1bf7dc82e780faa1
   languageName: node
   linkType: hard
 
@@ -2950,10 +2950,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ktx-parse@npm:^0.7.0":
-  version: 0.7.1
-  resolution: "ktx-parse@npm:0.7.1"
-  checksum: 10c0/07c0870a0d0fe0bd412b430ac58afd721136a1ca76db83a066b6d20810878822822cbe3b8c8507c15ae8680be0988675b4f5c3d1243262284f161b52c59d09e9
+"ktx-parse@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "ktx-parse@npm:1.1.0"
+  checksum: 10c0/7c57982bb53cf022a23740478966056f0055f1fb6cb0225d0c2a395156b134b046da59ac1f59c7474cd62d2e8e6d6378bcd2758bbf208ce83e65f8d022a2a2bd
   languageName: node
   linkType: hard
 
@@ -3141,15 +3141,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ndarray-pixels@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "ndarray-pixels@npm:4.1.0"
+"ndarray-pixels@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "ndarray-pixels@npm:5.2.0"
   dependencies:
     "@types/ndarray": "npm:^1.0.14"
     ndarray: "npm:^1.0.19"
     ndarray-ops: "npm:^1.2.2"
-    sharp: "npm:^0.33.4"
-  checksum: 10c0/450bcbfc33baeffe2f7ead5900a30e63932f1cce16a7b9bd5f69466429fa466b959878804ce55ec0f1edde5ad03fc3ac40680bd454ec3e3316eae68c2d1fb3f5
+    sharp: "npm:^0.35.0"
+  checksum: 10c0/06176c2f2161f0df98b615953092cead893eab0563d19a70785715ac6e6c37c7f7a1b208a54efe06911934e508f6bae17a47e8c9b6b0d873e155e819f1300284
   languageName: node
   linkType: hard
 
@@ -3352,10 +3352,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"property-graph@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "property-graph@npm:2.0.0"
-  checksum: 10c0/77648bd8111c5414024653142c68059997197a9384b3733767faa0cc43a4c1dace7f85dfd7ba1035df539969a8fc56c7039dfaed9fd1ca2430618b4ef0e657a6
+"property-graph@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "property-graph@npm:4.1.0"
+  checksum: 10c0/469e73dbc17ea07b251db9f8e837d246bb9317dde91000de8f3ad739627c4ee1d350a939f9d5558b51c49a35f0c0ae131b4b41f9e351b48fefa32dd3f3b02137
   languageName: node
   linkType: hard
 
@@ -3657,7 +3657,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:^0.35.5":
+"sharp@npm:^0.35.0, sharp@npm:^0.35.5":
   version: 0.35.5
   resolution: "sharp@npm:0.35.5"
   dependencies:
@@ -3889,8 +3889,8 @@ __metadata:
   linkType: hard
 
 "three-stdlib@npm:^2.28.7":
-  version: 2.33.0
-  resolution: "three-stdlib@npm:2.33.0"
+  version: 2.36.1
+  resolution: "three-stdlib@npm:2.36.1"
   dependencies:
     "@types/draco3d": "npm:^1.4.0"
     "@types/offscreencanvas": "npm:^2019.6.4"
@@ -3900,7 +3900,7 @@ __metadata:
     potpack: "npm:^1.0.1"
   peerDependencies:
     three: ">=0.128.0"
-  checksum: 10c0/ba35f0d035877f189bcfe8228d0a731497ba620e28108ad61720e2cbbe5fc2826eeca3566cfe5fbb300456d74ddc81adf12496c14e53a744282d28ea27fc40dd
+  checksum: 10c0/6d04a3e6e1cf5a23e1d8807085609e5cfa999d342a8f4a3168432c4152e99ab555f7fd7ab22903d9639f33d8d19d2183c62931be34ad6c3ac8bd3ed879d973c2
   languageName: node
   linkType: hard
 
