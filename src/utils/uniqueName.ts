@@ -11,10 +11,10 @@
  * base was taken when it was probed and is still taken; resuming from `next[base]` skips only
  * candidates the old scan would have rejected.
  */
-export default function createUniqueName() {
-  const used = new Set()
-  const next = new Map()
-  return function uniqueName(attempt) {
+export default function createUniqueName(): (attempt: string) => string {
+  const used = new Set<string>()
+  const next = new Map<string, number>()
+  return function uniqueName(attempt: string): string {
     let index = next.get(attempt) ?? 0
     let candidate = index > 0 ? attempt + index : attempt
     while (used.has(candidate)) {

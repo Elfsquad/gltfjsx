@@ -4,7 +4,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { run, tempDir, triangleGltf, writeModel } from './cli-helpers.js'
+import { run, tempDir, triangleGltf, writeModel } from './cli-helpers.ts'
 
 test('a valid model exits 0 and writes the JSX', () => {
   const dir = tempDir()

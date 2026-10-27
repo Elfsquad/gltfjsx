@@ -1,7 +1,6 @@
-import { Logger, NodeIO } from '@gltf-transform/core'
+import { Logger, NodeIO, type Transform } from '@gltf-transform/core'
 import {
   simplify,
-  instance,
   flatten,
   dequantize,
   reorder,
@@ -20,9 +19,26 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions'
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer'
 import { ready as resampleReady, resample as resampleWASM } from 'keyframe-resample'
 import draco3d from 'draco3dgltf'
-import sharp from 'sharp'
 
-async function transform(file, output, config = {}) {
+export interface TransformOptions {
+  console?: boolean | undefined
+  resolution?: number | undefined
+  degrade?: string | undefined
+  degraderesolution?: number | undefined
+  keepmaterials?: boolean | undefined
+  keepmeshes?: boolean | undefined
+  simplify?: boolean | undefined
+  ratio?: number | undefined
+  error?: number | undefined
+  format?: string | undefined
+}
+
+type TextureFormat = 'webp' | 'avif' | 'png' | 'jpeg'
+
+async function transform(file: string, output: string, config: TransformOptions = {}): Promise<void> {
+  // Imported here, not at the top: sharp is an optional dependency, and a missing one must only
+  // break --transform, not every run.
+  const { default: sharp } = await import('sharp')
   await MeshoptDecoder.ready
   await MeshoptEncoder.ready
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -38,7 +54,7 @@ async function transform(file, output, config = {}) {
   const resolution = config.resolution ?? 1024
   const normalResolution = Math.max(resolution, 2048)
   const degradeResolution = config.degraderesolution ?? 512
-  const functions = [unpartition()]
+  const functions: Transform[] = [unpartition()]
 
   if (!config.keepmaterials) functions.push(palette({ min: 5 }))
 
@@ -81,13 +97,13 @@ async function transform(file, output, config = {}) {
       textureCompress({
         encoder: sharp,
         pattern: new RegExp(`^(?=${config.degrade}).*$`),
-        targetFormat: config.format,
+        targetFormat: config.format as TextureFormat,
         resize: [degradeResolution, degradeResolution],
       }),
       textureCompress({
         encoder: sharp,
         pattern: new RegExp(`^(?!${config.degrade}).*$`),
-        targetFormat: config.format,
+        targetFormat: config.format as TextureFormat,
         resize: [resolution, resolution],
       })
     )
@@ -97,7 +113,7 @@ async function transform(file, output, config = {}) {
       textureCompress({
         slots: /^(?!normalTexture).*$/, // exclude normal maps
         encoder: sharp,
-        targetFormat: config.format,
+        targetFormat: config.format as TextureFormat,
         resize: [resolution, resolution],
       }),
       textureCompress({

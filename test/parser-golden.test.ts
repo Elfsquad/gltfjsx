@@ -5,8 +5,8 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import parse from '../src/utils/parser.js'
-import { mixedScene, OPTION_SETS, SEEDS, SIZES } from './scenes.js'
+import parse from '../src/utils/parser.ts'
+import { mixedScene, OPTION_SETS, SEEDS, SIZES } from './scenes.ts'
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'golden')
 

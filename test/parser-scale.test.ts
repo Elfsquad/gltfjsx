@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseCpuMs } from './scale.js'
+import { parseCpuMs } from './scale.ts'
 
 // Runs in `npm test`. Before the uniqueName fix, 500 such meshes took 24 s and 5,000 would take
 // hours; now 5,000 take about 1 s of CPU.

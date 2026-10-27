@@ -3,16 +3,16 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import gltfjsx from '../src/gltfjsx.js'
+import gltfjsx from '../src/gltfjsx.ts'
 import { GLTFLoader } from '../src/bin/GLTFLoader.js'
 import { DRACOLoader } from '../src/bin/DRACOLoader.js'
-import { tempDir, triangleGltf, writeModel } from './cli-helpers.js'
+import { tempDir, triangleGltf, writeModel } from './cli-helpers.ts'
 
 // gltfjsx() logs the header (and gltf-transform its warnings) to stderr, --console the JSX to stdout.
-async function captured(fn) {
+async function captured(fn: () => Promise<unknown>) {
   const { log, error, warn } = console
-  const stdout = []
-  const stderr = []
+  const stdout: string[] = []
+  const stderr: string[] = []
   console.log = (...args) => stdout.push(args.join(' '))
   console.error = console.warn = (...args) => stderr.push(args.join(' '))
   try {
@@ -82,7 +82,9 @@ test('a parser error rejects and writes no file', async () => {
 })
 
 test('a loader failure that is not an Error still rejects with an Error', async (t) => {
-  t.mock.method(GLTFLoader.prototype, 'parse', (data, path, onLoad, onError) => onError('broken'))
+  t.mock.method(GLTFLoader.prototype, 'parse', (...[, , , onError]: Parameters<GLTFLoader['parse']>) =>
+    onError!('broken')
+  )
   const dir = tempDir()
   await assert.rejects(gltfjsx(writeModel(dir), path.join(dir, 'out.jsx'), {}), (e) => {
     assert.ok(e instanceof Error)

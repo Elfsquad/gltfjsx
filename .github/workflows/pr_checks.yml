@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   checks:
-    name: Format, Build & Test
+    name: Format, Typecheck, Lint, Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -30,9 +30,11 @@ jobs:
       # Runtime dependencies only: they are what ships to consumers. Mirrors forge-convert-server.
       - run: yarn npm audit --environment production --recursive --severity moderate --no-deprecations
       - run: yarn fmt:check
+      - run: yarn typecheck
+      - run: yarn lint
       # Builds dist/ the same way `prepack` does before publish.yml publishes it.
       - run: yarn build
-      # Includes the golden check: test/parser-golden.test.js compares the JSX for the scenes in
-      # test/scenes.js against test/golden and fails when the output differs.
+      # Includes the golden check: test/parser-golden.test.ts compares the JSX for the scenes in
+      # test/scenes.ts against test/golden and fails when the output differs.
       - run: yarn test
       - run: yarn test:scale

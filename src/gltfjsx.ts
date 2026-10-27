@@ -1,28 +1,34 @@
-import 'jsdom-global'
 import fs from 'fs'
 import path from 'path'
-import transform from './utils/transform.js'
+import transform, { type TransformOptions } from './utils/transform.ts'
 
 import { GLTFLoader } from './bin/GLTFLoader.js'
 import { DRACOLoader } from './bin/DRACOLoader.js'
 DRACOLoader.getDecoderModule = () => {}
-import parse from './utils/parser.js'
+import parse, { type ParseOptions } from './utils/parser.ts'
+
+export type Options = ParseOptions &
+  TransformOptions & {
+    // Directory the .gltf is served from: the URL in useGLTF() is relative to it.
+    root?: string | undefined
+    transform?: boolean | undefined
+  }
 
 const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(new DRACOLoader())
 
-function toArrayBuffer(buf) {
+function toArrayBuffer(buf: Buffer): ArrayBuffer {
   var ab = new ArrayBuffer(buf.length)
   var view = new Uint8Array(ab)
-  for (var i = 0; i < buf.length; ++i) view[i] = buf[i]
+  for (var i = 0; i < buf.length; ++i) view[i] = buf[i]!
   return ab
 }
 
-function roundOff(value) {
+function roundOff(value: number): number {
   return Math.round(value * 100) / 100
 }
 
-function getFileSize(file) {
+function getFileSize(file: string) {
   const stats = fs.statSync(file)
   let fileSize = stats.size
   let fileSizeKB = roundOff(fileSize * 0.001)
@@ -33,8 +39,8 @@ function getFileSize(file) {
   }
 }
 
-export default function (file, output, options) {
-  function getRelativeFilePath(file) {
+export default function (file: string, output: string | undefined, options: Options): Promise<void> {
+  function getRelativeFilePath(file: string) {
     const filePath = path.resolve(file)
     const rootPath = options.root ? path.resolve(options.root) : path.dirname(file)
     const relativePath = path.relative(rootPath, filePath) || ''
@@ -45,9 +51,9 @@ export default function (file, output, options) {
   // Settles exactly once: resolves after the JSX is written (or printed with --console), rejects on
   // a missing input, an unreadable or unparsable file, a loader error or a parser error. The
   // output file is written only on success, so a failed run leaves no empty or partial file.
-  return new Promise((resolve, _reject) => {
+  return new Promise<void>((resolve, _reject) => {
     // Always an Error, so callers can print reason.message.
-    const reject = (reason) => _reject(reason instanceof Error ? reason : new Error(String(reason)))
+    const reject = (reason: unknown) => _reject(reason instanceof Error ? reason : new Error(String(reason)))
     async function run() {
       let size = ''
       // Process GLTF
@@ -75,7 +81,7 @@ export default function (file, output, options) {
           try {
             const jsx = await parse(gltf, { fileName: filePath, size, ...options })
             if (options.console) console.log(jsx)
-            else fs.writeFileSync(path.resolve(output), jsx)
+            else fs.writeFileSync(path.resolve(output!), jsx)
             resolve()
           } catch (e) {
             reject(e)
@@ -92,13 +98,13 @@ export default function (file, output, options) {
 
 // The structure loader never reads buffer bytes, so a .gltf whose external buffer is missing
 // would still print JSX and exit 0 for a model that cannot load. Check the files exist.
-function checkExternalBuffers(data, file) {
+function checkExternalBuffers(data: Buffer, file: string) {
   if (data.subarray(0, 4).toString('latin1') === 'glTF') return // GLB: the loader checks it
-  let json
+  let json: { buffers?: { uri?: unknown }[] }
   try {
     json = JSON.parse(data.toString('utf8'))
   } catch (e) {
-    throw new Error(`${file} is not valid glTF JSON: ${e.message}`)
+    throw new Error(`${file} is not valid glTF JSON: ${(e as Error).message}`)
   }
   for (const buffer of json.buffers ?? []) {
     if (typeof buffer.uri !== 'string' || buffer.uri.startsWith('data:')) continue

@@ -1,9 +1,10 @@
 // Deterministic synthetic scenes for parser tests. No customer data: every name and
 // number is generated here from a fixed seed.
 import * as THREE from 'three'
+import type { ParseOptions } from '../src/utils/parser.ts'
 
 // Small seeded PRNG (mulberry32) so a scene is the same on every run.
-export function rng(seed) {
+export function rng(seed: number): () => number {
   let a = seed >>> 0
   return () => {
     a = (a + 0x6d2b79f5) >>> 0
@@ -40,14 +41,14 @@ const LETTER_POOL = NAME_POOL.filter((name) => /^[a-zA-Z]/.test(name))
 
 // A scene of `count` meshes in small groups. Some meshes share a geometry and material, so
 // `instance`/`instanceall` have duplicates to print. userData carries an id like the SVF fork's extras.
-export function mixedScene(seed, count, { lettersOnly = false } = {}) {
+export function mixedScene(seed: number, count: number, { lettersOnly = false } = {}): THREE.Group {
   const pool = lettersOnly ? LETTER_POOL : NAME_POOL
   const next = rng(seed)
-  const pick = (list) => list[Math.floor(next() * list.length)]
+  const pick = <T>(list: T[]): T => list[Math.floor(next() * list.length)]!
   const materials = ['Steel', 'Paint', 'Glass'].map((name) => new THREE.MeshStandardMaterial({ name }))
   const geometries = Array.from({ length: Math.max(1, Math.floor(count / 3)) }, () => new THREE.BoxGeometry(1, 1, 1))
   const scene = new THREE.Group()
-  let group = scene
+  let group: THREE.Group = scene
   for (let i = 0; i < count; i++) {
     if (i % 5 === 0) {
       group = new THREE.Group()
@@ -66,7 +67,7 @@ export function mixedScene(seed, count, { lettersOnly = false } = {}) {
 
 // `count` meshes, each with its own geometry, all named by a numeric dbId: the SVF shape that
 // made uniqueName() cubic (every base name is the empty string).
-export function numericScene(count) {
+export function numericScene(count: number): THREE.Group {
   const material = new THREE.MeshStandardMaterial({ name: 'm' })
   const scene = new THREE.Group()
   for (let i = 0; i < count; i++) {
@@ -80,7 +81,7 @@ export function numericScene(count) {
 
 // Option sets exercised by the equivalence goldens. `pipeline` is what convert-svf passes.
 // `lettersOnly` marks the sets that print instance names (see LETTER_POOL).
-export const OPTION_SETS = {
+export const OPTION_SETS: Record<string, { options: ParseOptions; lettersOnly?: boolean }> = {
   pipeline: { options: { keepnames: true, keepgroups: true, meta: true, shadows: true, precision: 3 } },
   default: { options: {} },
   instance: { options: { instance: true, keepnames: true, precision: 3 }, lettersOnly: true },
