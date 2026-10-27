@@ -18,5 +18,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: corepack enable
       - run: yarn install --immutable
+      # Runtime dependencies only: they are what ships to consumers. Mirrors forge-convert-server.
+      - run: yarn npm audit --environment production --recursive --severity moderate --no-deprecations
       - run: npm test
       - run: npm run test:scale
