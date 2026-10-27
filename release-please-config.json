@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "c7fd3d4aa2b0815be41392e35e972c3373b25361",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@elfsquad/gltfjsx",
+      "include-component-in-tag": false,
+      "changelog-path": "CHANGELOG.md",
+      "pull-request-title-pattern": "chore: release ${version}"
+    }
+  }
+}

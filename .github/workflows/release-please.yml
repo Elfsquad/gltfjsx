@@ -1,0 +1,35 @@
+name: release-please
+
+# Semantic versioning from Conventional Commits. Every push to master updates one open release
+# PR: `fix:` bumps the patch, `feat:` the minor, `feat!:` / `BREAKING CHANGE:` the major. It
+# bumps package.json and writes CHANGELOG.md. Merging that PR tags vX.Y.Z and publishes it.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # A tag pushed with GITHUB_TOKEN triggers no workflow, so publish.yml's `push: tags` never
+  # sees release-please's tag. Call it directly instead.
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/publish.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}

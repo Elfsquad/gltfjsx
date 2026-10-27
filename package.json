@@ -1,11 +1,12 @@
 {
-  "name": "gltfjsx",
+  "name": "@elfsquad/gltfjsx",
   "version": "6.5.2",
   "description": "GLTF to JSX converter",
   "scripts": {
     "build": "rollup -c",
     "test": "node src/test && node --test test/*.test.js",
-    "test:scale": "node --max-old-space-size=6144 --test test/scale/*.test.js"
+    "test:scale": "node --max-old-space-size=6144 --test test/scale/*.test.js",
+    "prepack": "npm run build"
   },
   "type": "module",
   "keywords": [
@@ -24,12 +25,22 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pmndrs/gltfjsx.git"
+    "url": "git+https://github.com/Elfsquad/gltfjsx.git"
   },
   "bugs": {
-    "url": "https://github.com/pmndrs/gltfjsx/issues"
+    "url": "https://github.com/Elfsquad/gltfjsx/issues"
   },
-  "homepage": "https://github.com/pmndrs/gltfjsx#readme",
+  "homepage": "https://github.com/Elfsquad/gltfjsx#readme",
+  "files": [
+    "cli.js",
+    "src",
+    "dist",
+    "LICENSE",
+    "readme.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "bin": "./cli.js",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
