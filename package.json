@@ -44,9 +44,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
-  "bin": {
-    "gltfjsx": "./dist/cli.js"
-  },
+  "bin": "./dist/cli.js",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
