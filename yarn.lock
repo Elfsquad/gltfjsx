@@ -1492,6 +1492,59 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@elfsquad/gltfjsx@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@elfsquad/gltfjsx@workspace:."
+  dependencies:
+    "@babel/core": "npm:7.23.6"
+    "@babel/plugin-proposal-class-properties": "npm:^7.16.0"
+    "@babel/plugin-transform-modules-commonjs": "npm:7.23.3"
+    "@babel/plugin-transform-parameters": "npm:7.23.3"
+    "@babel/plugin-transform-runtime": "npm:7.23.6"
+    "@babel/plugin-transform-template-literals": "npm:7.23.3"
+    "@babel/preset-env": "npm:7.23.6"
+    "@babel/preset-react": "npm:7.23.3"
+    "@babel/preset-typescript": "npm:^7.23.3"
+    "@gltf-transform/core": "npm:4.1.0"
+    "@gltf-transform/extensions": "npm:4.1.0"
+    "@gltf-transform/functions": "npm:4.1.0"
+    "@node-loader/babel": "npm:^2.0.1"
+    "@rollup/plugin-babel": "npm:^6.0.4"
+    "@rollup/plugin-node-resolve": "npm:^15.2.3"
+    chalk: "npm:^5.3.0"
+    draco3dgltf: "npm:^1.5.7"
+    fast-glob: "npm:^3.3.2"
+    fs-extra: "npm:^11.2.0"
+    is-var-name: "npm:^2.0.0"
+    jsdom: "npm:^24.1.0"
+    jsdom-global: "npm:^3.0.2"
+    keyframe-resample: "npm:^0.1.0"
+    libvips: "npm:0.0.2"
+    lint-staged: "npm:^13.2.0"
+    meow: "npm:^12.1.1"
+    meshoptimizer: "npm:^0.22.0"
+    prettier: "npm:3.1.1"
+    read-pkg-up: "npm:^10.1.0"
+    rollup: "npm:^4.9.1"
+    rollup-plugin-size-snapshot: "npm:^0.12.0"
+    rollup-plugin-terser: "npm:^7.0.2"
+    sharp: "npm:^0.33.5"
+    three: "npm:0.159.0"
+    three-stdlib: "npm:^2.28.7"
+  dependenciesMeta:
+    jsdom:
+      optional: true
+    jsdom-global:
+      optional: true
+    libvips:
+      optional: true
+    sharp:
+      optional: true
+  bin:
+    gltfjsx: ./cli.js
+  languageName: unknown
+  linkType: soft
+
 "@gltf-transform/core@npm:4.0.8":
   version: 4.0.8
   resolution: "@gltf-transform/core@npm:4.0.8"
@@ -4164,59 +4217,6 @@ __metadata:
   checksum: 10c0/758f9f258e7b19226bd8d4af5d3b0dcf7038780fb23d82e6f98932c44e239f884847f1766e8fa9cc5635ccb3204f7fa7314d4408dd4002a5e8ea827b4018f0a1
   languageName: node
   linkType: hard
-
-"gltfjsx@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "gltfjsx@workspace:."
-  dependencies:
-    "@babel/core": "npm:7.23.6"
-    "@babel/plugin-proposal-class-properties": "npm:^7.16.0"
-    "@babel/plugin-transform-modules-commonjs": "npm:7.23.3"
-    "@babel/plugin-transform-parameters": "npm:7.23.3"
-    "@babel/plugin-transform-runtime": "npm:7.23.6"
-    "@babel/plugin-transform-template-literals": "npm:7.23.3"
-    "@babel/preset-env": "npm:7.23.6"
-    "@babel/preset-react": "npm:7.23.3"
-    "@babel/preset-typescript": "npm:^7.23.3"
-    "@gltf-transform/core": "npm:4.1.0"
-    "@gltf-transform/extensions": "npm:4.1.0"
-    "@gltf-transform/functions": "npm:4.1.0"
-    "@node-loader/babel": "npm:^2.0.1"
-    "@rollup/plugin-babel": "npm:^6.0.4"
-    "@rollup/plugin-node-resolve": "npm:^15.2.3"
-    chalk: "npm:^5.3.0"
-    draco3dgltf: "npm:^1.5.7"
-    fast-glob: "npm:^3.3.2"
-    fs-extra: "npm:^11.2.0"
-    is-var-name: "npm:^2.0.0"
-    jsdom: "npm:^24.1.0"
-    jsdom-global: "npm:^3.0.2"
-    keyframe-resample: "npm:^0.1.0"
-    libvips: "npm:0.0.2"
-    lint-staged: "npm:^13.2.0"
-    meow: "npm:^12.1.1"
-    meshoptimizer: "npm:^0.22.0"
-    prettier: "npm:3.1.1"
-    read-pkg-up: "npm:^10.1.0"
-    rollup: "npm:^4.9.1"
-    rollup-plugin-size-snapshot: "npm:^0.12.0"
-    rollup-plugin-terser: "npm:^7.0.2"
-    sharp: "npm:^0.33.5"
-    three: "npm:0.159.0"
-    three-stdlib: "npm:^2.28.7"
-  dependenciesMeta:
-    jsdom:
-      optional: true
-    jsdom-global:
-      optional: true
-    libvips:
-      optional: true
-    sharp:
-      optional: true
-  bin:
-    gltfjsx: ./cli.js
-  languageName: unknown
-  linkType: soft
 
 "gopd@npm:^1.0.1":
   version: 1.0.1
