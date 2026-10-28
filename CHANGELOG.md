@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.0.0](https://github.com/Elfsquad/gltfjsx/compare/v6.6.2...v7.0.0) (2026-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* the package is ESM-only and ships only dist/; src/ and cli.js are no longer published, and parse() is an async function.
+
+### Code Refactoring
+
+* release the TypeScript migration as a major version ([#17](https://github.com/Elfsquad/gltfjsx/issues/17)) ([fc74d9f](https://github.com/Elfsquad/gltfjsx/commit/fc74d9f115c26cb2b42f34adb484bb5512da732a))
+
 ## [6.6.2](https://github.com/Elfsquad/gltfjsx/compare/v6.6.1...v6.6.2) (2026-10-27)
 
 
