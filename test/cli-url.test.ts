@@ -3,13 +3,13 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import parse from '../src/utils/parser.js'
-import { run, tempDir, writeModel } from './cli-helpers.js'
-import { mixedScene } from './scenes.js'
+import parse from '../src/utils/parser.ts'
+import { run, tempDir, writeModel } from './cli-helpers.ts'
+import { mixedScene } from './scenes.ts'
 
 const URL = 'https://example.invalid/gltfmodels/0f1e2d3c/model.gltf'
 
-function convert(args) {
+function convert(args: string[]) {
   const dir = tempDir()
   const out = path.join(dir, 'out.jsx')
   const r = run([writeModel(dir), '--output', out, ...args])

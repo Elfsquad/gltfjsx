@@ -263,15 +263,15 @@ const dracoloader = new DRACOLoader()
 dracoloader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
 gltfLoader.setDRACOLoader(dracoloader)
 
-gltfLoader.load(url, (gltf) => {
-  const jsx = parse(gltf, optionalConfig)
+gltfLoader.load(url, async (gltf) => {
+  const jsx = await parse(gltf, optionalConfig)
 })
 ```
 
 ## Using the parser stand-alone for scenes (object3d's)
 
 ```jsx
-const jsx = parse(scene, optionalConfig)
+const jsx = await parse(scene, optionalConfig)
 ```
 
 ## Using GLTFStructureLoader stand-alone
@@ -294,8 +294,9 @@ it('should have a scene with a blue mesh', async () => {
 
 ## Requirements
 
-- Nodejs must be installed
+- Node.js 24 or newer. The package is ESM-only: `import`, not `require()`
 - The GLTF file has to be present in your projects `/public` folder
 - [three](https://github.com/mrdoob/three.js/) (>= 122.x)
 - [@react-three/fiber](https://github.com/pmndrs/react-three-fiber) (>= 5.x)
 - [@react-three/drei](https://github.com/pmndrs/drei) (>= 2.x)
+- [three-stdlib](https://github.com/pmndrs/three-stdlib), for components generated with `--types` or from skinned models (they import `GLTF` and `SkeletonUtils` from it)

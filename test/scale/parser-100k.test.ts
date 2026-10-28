@@ -4,7 +4,7 @@
 //   npm run test:scale
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseCpuMs } from '../scale.js'
+import { parseCpuMs } from '../scale.ts'
 
 test('parse() on 100,000 numeric-named meshes stays within 120 s of CPU', async () => {
   const { ms, out } = await parseCpuMs(100_000)

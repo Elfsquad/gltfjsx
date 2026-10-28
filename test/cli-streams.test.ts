@@ -2,9 +2,8 @@
 // only the JSX with --console, so `gltfjsx --console model.gltf > model.jsx` is safe.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import path from 'node:path'
-import { run, tempDir, writeModel } from './cli-helpers.js'
+import { run, tempDir, writeModel } from './cli-helpers.ts'
 
 test('writing a file prints nothing to stdout, even with --debug', () => {
   const dir = tempDir()

@@ -2,18 +2,21 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as THREE from 'three'
-import parse from '../src/utils/parser.js'
+import parse, { type ParseOptions } from '../src/utils/parser.ts'
 
 const box = () => new THREE.BoxGeometry(1, 1, 1)
-const mat = (name) => new THREE.MeshStandardMaterial({ name })
+const mat = (name: string) => new THREE.MeshStandardMaterial({ name })
 
-function mesh(name, { geometry = box(), material = mat('Steel') } = {}) {
+function mesh(
+  name: string,
+  { geometry = box(), material = mat('Steel') }: { geometry?: THREE.BufferGeometry; material?: THREE.Material } = {}
+) {
   const m = new THREE.Mesh(geometry, material)
   m.name = name
   return m
 }
 
-function group(name, ...children) {
+function group(name: string, ...children: THREE.Object3D[]) {
   const g = new THREE.Group()
   g.name = name
   children.forEach((child) => g.add(child))
@@ -21,9 +24,9 @@ function group(name, ...children) {
 }
 
 // parse() echoes the header to stderr unless --console: keep test output readable.
-async function quiet(fn) {
+async function quiet(fn: () => Promise<string>) {
   const error = console.error
-  const lines = []
+  const lines: string[] = []
   console.error = (...args) => lines.push(args.join(' '))
   try {
     return { out: await fn(), stderr: lines.join('\n') }
@@ -32,7 +35,8 @@ async function quiet(fn) {
   }
 }
 
-const run = (scene, options = {}) => quiet(() => parse(scene, { header: 'test', ...options })).then((r) => r.out)
+const run = (scene: Parameters<typeof parse>[0], options: ParseOptions = {}) =>
+  quiet(() => parse(scene, { header: 'test', ...options })).then((r) => r.out)
 
 test('a remote fileName is used as the URL as is', async () => {
   const out = await run(mesh('Box'), { fileName: 'https://example.invalid/model.glb' })
@@ -138,7 +142,7 @@ test('--meta prints userData only when there is some', async () => {
   tagged.userData = { id: 7 }
   const out = await run(group('Root', tagged, mesh('Bare')), { meta: true })
   assert.match(out, /userData=\{\{ id: 7 \}\}/)
-  assert.equal(out.match(/userData/g).length, 1)
+  assert.equal(out.match(/userData/g)!.length, 1)
 })
 
 test('instanced meshes print args, matrix and colour', async () => {
@@ -200,7 +204,7 @@ test('--instance with types prints a typed Instances context; meshes without mat
   const geometry = box()
   const material = mat('Steel')
   const loose = new THREE.Mesh(box())
-  loose.material = null
+  loose.material = null as unknown as THREE.Material // a loader can leave a mesh without one
   loose.name = 'Loose'
   const scene = group('Root', mesh('Bolt', { geometry, material }), mesh('Bolt2', { geometry, material }), loose)
   const out = await run(scene, { instance: true, types: true, draco: '/draco/' })
@@ -212,7 +216,7 @@ test('--instance with types prints a typed Instances context; meshes without mat
   assert.match(out, /export function Instances\(\{ children, \.\.\.props \}: JSX\.IntrinsicElements\['group'\]\)/)
   assert.match(out, /useGLTF\('\/model', '\/draco\/'\) as GLTFResult/)
   assert.match(out, /\(instances: ContextType\) =>/)
-  assert.equal(out.match(/<instances\.Bolt /g).length, 2)
+  assert.equal(out.match(/<instances\.Bolt /g)!.length, 2)
   assert.match(out, /<mesh geometry=\{nodes\.Loose\.geometry\}/)
 })
 
@@ -292,14 +296,14 @@ test('pruning: children of removed groups move to the nearest kept ancestor', as
   const deep = group('Deep', group('Deeper', mesh('Box')), mesh('Box2'))
   const scene = group('Root', group('Middle', deep), mesh('Other'))
   const out = await run(scene)
-  assert.equal(out.match(/<group/g).length, 1)
-  assert.equal(out.match(/<mesh/g).length, 3)
+  assert.equal(out.match(/<group/g)!.length, 1)
+  assert.equal(out.match(/<mesh/g)!.length, 3)
 })
 
 test('pruning: a removed root hands its children to the scene', async () => {
   const root = group('Root', mesh('Box'))
   const scene = group('Scene', root)
-  root.__removed = true
+  ;(root as THREE.Group & { __removed?: boolean }).__removed = true
   root.removeFromParent()
   const out = await run({ scene: root, animations: [], parser: { json: {} } })
   assert.match(out, /<mesh/)
@@ -323,9 +327,9 @@ test('--keepgroups keeps every group', async () => {
 })
 
 test('an error while printing is wrapped with its cause', async () => {
-  const broken = new THREE.InstancedMesh(box(), null, 1)
-  broken.material = undefined
-  await assert.rejects(run(broken), (e) => {
+  const broken = new THREE.InstancedMesh(box(), undefined, 1)
+  broken.material = undefined as unknown as THREE.Material
+  await assert.rejects(run(broken), (e: Error) => {
     assert.match(e.message, /^Error while parsing glTF: /)
     assert.ok(e.cause instanceof TypeError)
     return true

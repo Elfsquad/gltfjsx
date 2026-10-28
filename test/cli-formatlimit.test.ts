@@ -7,9 +7,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import * as prettier from 'prettier'
 import babelParser from 'prettier/parser-babel.js'
-import parse from '../src/utils/parser.js'
-import { run, tempDir, writeModel } from './cli-helpers.js'
-import { mixedScene } from './scenes.js'
+import parse from '../src/utils/parser.ts'
+import { run, tempDir, writeModel } from './cli-helpers.ts'
+import { mixedScene } from './scenes.ts'
 
 const URL = 'https://example.invalid/gltfmodels/0f1e2d3c/model.gltf'
 const PIPELINE = [
@@ -34,7 +34,7 @@ const PRETTIER = {
   plugins: [babelParser],
 }
 
-function convert(args) {
+function convert(args: string[]) {
   const dir = tempDir()
   const out = path.join(dir, 'out.jsx')
   const r = run([writeModel(dir), '--output', out, ...args])
@@ -73,7 +73,7 @@ test('the unformatted JSX loads and preloads the URL single-quoted, as the forma
 test('a URL with quotes and backslashes stays one valid literal in the unformatted JSX', async () => {
   const url = `https://example.invalid/it's/"a"\\b.gltf`
   const out = await parse(mixedScene(1, 12, { lettersOnly: true }), { fileName: 'model.gltf', url, formatlimit: 0 })
-  const literal = out.match(/useGLTF\.preload\(('(?:[^'\\]|\\.)*')\)/)[1]
+  const literal = out.match(/useGLTF\.preload\(('(?:[^'\\]|\\.)*')\)/)![1]
   assert.equal(new Function(`return ${literal}`)(), url)
 })
 

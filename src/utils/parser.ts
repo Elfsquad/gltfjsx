@@ -1,14 +1,85 @@
 import * as THREE from 'three'
 import * as prettier from 'prettier'
-import babelParser from 'prettier/parser-babel.js'
-import isVarName from './isVarName.js'
-import createUniqueName from './uniqueName.js'
+import babelParser from 'prettier/plugins/babel'
+import isVarName from './isVarName.ts'
+import createUniqueName from './uniqueName.ts'
 
-function parse(gltf, { fileName = 'model', ...options } = {}) {
-  if (gltf.isObject3D) {
-    // Wrap scene in a GLTF Structure
-    gltf = { scene: gltf, animations: [], parser: { json: {} } }
-  }
+export interface ParseOptions {
+  fileName?: string | undefined
+  // Used verbatim as the URL in useGLTF() and preload() instead of one derived from fileName.
+  url?: string | undefined
+  header?: string | undefined
+  // The "Files:" line of the header, set by --transform.
+  size?: string | undefined
+  draco?: string | undefined
+  types?: boolean | undefined
+  keepnames?: boolean | undefined
+  keepgroups?: boolean | undefined
+  bones?: boolean | undefined
+  meta?: boolean | undefined
+  shadows?: boolean | undefined
+  instance?: boolean | undefined
+  instanceall?: boolean | undefined
+  exportdefault?: boolean | undefined
+  precision?: number | undefined
+  printwidth?: number | undefined
+  formatlimit?: number | undefined
+  console?: boolean | undefined
+  debug?: boolean | undefined
+}
+
+// What parse() needs from a loaded glTF (GLTFLoader's result has more).
+export interface GLTFStructure {
+  scene: THREE.Object3D
+  animations: THREE.AnimationClip[]
+  parser: { json: { asset?: { extras?: Record<string, unknown> | undefined } | undefined } }
+}
+
+// A scene object as parse() reads it: whichever three.js class it is, only the properties that
+// class has are set. `__removed` marks an object the pruner dropped.
+interface SceneObject extends THREE.Object3D {
+  children: SceneObject[]
+  parent: SceneObject | null
+  traverse(callback: (object: SceneObject) => void): void
+  __removed?: boolean
+  isMesh?: boolean
+  isBone?: boolean
+  isInstancedMesh?: boolean
+  geometry?: THREE.BufferGeometry
+  material?: THREE.Material | null
+  count?: number
+  instanceMatrix?: unknown
+  instanceColor?: unknown
+  skeleton?: unknown
+  morphTargetDictionary?: Record<string, number>
+  morphTargetInfluences?: number[]
+  zoom?: number
+  far?: number
+  near?: number
+  fov?: number
+  intensity?: number
+  angle?: number
+  penumbra?: number
+  decay?: number
+  distance?: number
+  color?: THREE.Color
+  target?: SceneObject
+}
+
+interface Structure {
+  scene: SceneObject
+  animations: THREE.AnimationClip[]
+  parser: GLTFStructure['parser']
+}
+
+type TransformKey = 'position' | 'rotation' | 'scale'
+
+async function parse(
+  input: GLTFStructure | THREE.Object3D,
+  { fileName = 'model', ...options }: ParseOptions = {}
+): Promise<string> {
+  // Wrap scene in a GLTF Structure
+  const gltf = ('isObject3D' in input ? { scene: input, animations: [], parser: { json: {} } } : input) as Structure
 
   // `url` (the CLI's --url) is used verbatim, quoted as a JS string, so the model loads from exactly
   // that URL. Without it the URL is derived from fileName as before.
@@ -22,14 +93,13 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   const hasAnimations = animations.length > 0
 
   // Collect all objects
-  const objects = []
+  const objects: SceneObject[] = []
   gltf.scene.traverse((child) => objects.push(child))
 
   // Browse for duplicates
   const duplicates = {
-    names: {},
-    materials: {},
-    geometries: {},
+    materials: {} as Record<string, number>,
+    geometries: {} as Record<string, { count: number; name: string; node: string }>,
   }
 
   const uniqueName = createUniqueName()
@@ -40,7 +110,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
         if (!duplicates.materials[child.material.name]) {
           duplicates.materials[child.material.name] = 1
         } else {
-          duplicates.materials[child.material.name]++
+          duplicates.materials[child.material.name]!++
         }
       }
     }
@@ -60,7 +130,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
             node: 'nodes' + sanitizeName(child.name),
           }
         } else {
-          duplicates.geometries[key].count++
+          duplicates.geometries[key]!.count++
         }
       }
     }
@@ -69,43 +139,42 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   // Prune duplicate geometries
   if (!options.instanceall) {
     for (let key of Object.keys(duplicates.geometries)) {
-      const duplicate = duplicates.geometries[key]
+      const duplicate = duplicates.geometries[key]!
       if (duplicate.count === 1) delete duplicates.geometries[key]
     }
   }
 
   const hasInstances = (options.instance || options.instanceall) && Object.keys(duplicates.geometries).length > 0
 
-  function sanitizeName(name) {
+  function sanitizeName(name: string) {
     return isVarName(name) ? `.${name}` : `['${name}']`
   }
 
-  const rNbr = (number) => {
+  const rNbr = (number: number) => {
     return parseFloat(number.toFixed(Math.round(options.precision || 2)))
   }
 
-  const rDeg = (number) => {
-    const abs = Math.abs(Math.round(parseFloat(number) * 100000))
+  const rDeg = (number: number) => {
+    const abs = Math.abs(Math.round(number * 100000))
     for (let i = 1; i <= 10; i++) {
-      if (abs === Math.round(parseFloat(Math.PI / i) * 100000))
-        return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
+      if (abs === Math.round((Math.PI / i) * 100000)) return `${number < 0 ? '-' : ''}Math.PI${i > 1 ? ' / ' + i : ''}`
     }
     // From 2: Math.PI * 1 is Math.PI / 1, printed by the loop above
     for (let i = 2; i <= 10; i++) {
-      if (abs === Math.round(parseFloat(Math.PI * i) * 100000)) return `${number < 0 ? '-' : ''}Math.PI * ${i}`
+      if (abs === Math.round(Math.PI * i * 100000)) return `${number < 0 ? '-' : ''}Math.PI * ${i}`
     }
     return rNbr(number)
   }
 
-  function printTypes(objects, animations) {
+  function printTypes(objects: SceneObject[], animations: THREE.AnimationClip[]) {
     let meshes = objects.filter((o) => o.isMesh && o.__removed === undefined)
     let bones = objects.filter((o) => o.isBone && !(o.parent && o.parent.isBone) && o.__removed === undefined)
-    let materials = [...new Set(objects.filter((o) => o.material && o.material.name).map((o) => o.material))]
+    let materials = [...new Set(objects.flatMap((o) => (o.material && o.material.name ? [o.material] : [])))]
 
     let animationTypes = ''
     if (animations.length) {
       animationTypes = `\n
-  type ActionName = ${animations.map((clip, i) => `"${clip.name}"`).join(' | ')};
+  type ActionName = ${animations.map((clip) => `"${clip.name}"`).join(' | ')};
 
   interface GLTFAction extends THREE.AnimationClip { name: ActionName }\n`
     }
@@ -129,7 +198,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   }\n${contextType}`
   }
 
-  function getType(obj) {
+  function getType(obj: THREE.Object3D) {
     let type = obj.type.charAt(0).toLowerCase() + obj.type.slice(1)
     // Turn object3d's into groups, it should be faster according to the threejs docs
     if (type === 'object3D') type = 'group'
@@ -138,7 +207,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     return type
   }
 
-  function handleProps(obj) {
+  function handleProps(obj: SceneObject) {
     let { type, node, instanced } = getInfo(obj)
 
     let result = ''
@@ -146,12 +215,12 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     // Handle cameras
     if (isCamera) {
       result += `makeDefault={false} `
-      if (obj.zoom !== 1) result += `zoom={${rNbr(obj.zoom)}} `
-      if (obj.far !== 2000) result += `far={${rNbr(obj.far)}} `
-      if (obj.near !== 0.1) result += `near={${rNbr(obj.near)}} `
+      if (obj.zoom !== 1) result += `zoom={${rNbr(obj.zoom!)}} `
+      if (obj.far !== 2000) result += `far={${rNbr(obj.far!)}} `
+      if (obj.near !== 0.1) result += `near={${rNbr(obj.near!)}} `
     }
     if (type === 'PerspectiveCamera') {
-      if (obj.fov !== 50) result += `fov={${rNbr(obj.fov)}} `
+      if (obj.fov !== 50) result += `fov={${rNbr(obj.fov!)}} `
     }
 
     if (!instanced) {
@@ -216,7 +285,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     return result
   }
 
-  function getInfo(obj) {
+  function getInfo(obj: SceneObject) {
     let type = getType(obj)
     let node = 'nodes' + sanitizeName(obj.name)
     let instanced =
@@ -224,16 +293,16 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       obj.geometry &&
       obj.material &&
       duplicates.geometries[obj.geometry.uuid + obj.material.name] &&
-      duplicates.geometries[obj.geometry.uuid + obj.material.name].count > (options.instanceall ? 0 : 1)
+      duplicates.geometries[obj.geometry.uuid + obj.material.name]!.count > (options.instanceall ? 0 : 1)
     let animated = gltf.animations && gltf.animations.length > 0
     return { type, node, instanced, animated }
   }
 
-  function equalOrNegated(a, b) {
+  function equalOrNegated(a: THREE.Euler, b: THREE.Euler) {
     return (a.x === b.x || a.x === -b.x) && (a.y === b.y || a.y === -b.y) && (a.z === b.z || a.z === -b.z)
   }
 
-  function prune(obj, children, result, oldResult, silent) {
+  function prune(obj: SceneObject, children: string, result: string, oldResult: string, silent: boolean) {
     let { type, animated } = getInfo(obj)
     // Prune ...
     if (!obj.__removed && !options.keepgroups && !animated && (type === 'group' || type === 'scene')) {
@@ -250,12 +319,11 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
       }
 
       // More aggressive removal strategies ...
-      const first = obj.children[0]
+      const first = obj.children[0]!
       const firstProps = handleProps(first)
-      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9\.\[\]\-\,\ \/]*)}/g
-      const keys1 = [...result.matchAll(regex)].map(([, match]) => match)
-      const values1 = [...result.matchAll(regex)].map(([, , match]) => match)
-      const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match)
+      const regex = /([a-z-A-Z]*)={([a-zA-Z0-9.[\]\-, /]*)}/g
+      const keys1 = [...result.matchAll(regex)].map(([, match]) => match!)
+      const keys2 = [...firstProps.matchAll(regex)].map(([, match]) => match!)
 
       /** Double negative rotations
        *    <group rotation={[-Math.PI / 2, 0, 0]}>
@@ -308,7 +376,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
           console.error(`group ${obj.name} removed (aggressive: ${keys1.join(' ')} overlap)`)
         // Move props over from the to-be-deleted object to the child
         // This ensures that the child will have the correct transform when pruning is being repeated
-        keys1.forEach((key) => obj.children[0][key].copy(obj[key]))
+        keys1.forEach((key) => first[key as TransformKey].copy(obj[key as TransformKey] as THREE.Vector3 & THREE.Euler))
         // Insert the props into the result string
         children = print(first, true)
         obj.__removed = true
@@ -322,7 +390,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
        * Solution:
        *   (delete the whole sub graph)
        */
-      const empty = []
+      const empty: SceneObject[] = []
       obj.traverse((o) => {
         const type = getType(o)
         if (type !== 'group' && type !== 'object3D') empty.push(o)
@@ -335,7 +403,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     }
   }
 
-  function print(obj, silent = false) {
+  function print(obj: SceneObject, silent = false): string {
     let result = ''
     let children = ''
     let { type, node, instanced, animated } = getInfo(obj)
@@ -362,12 +430,13 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     if (obj.children) obj.children.forEach((child) => (children += print(child)))
 
     if (instanced) {
-      result = `<instances.${duplicates.geometries[obj.geometry.uuid + obj.material.name].name} `
-      type = `instances.${duplicates.geometries[obj.geometry.uuid + obj.material.name].name}`
+      const { name } = duplicates.geometries[obj.geometry!.uuid + obj.material!.name]!
+      result = `<instances.${name} `
+      type = `instances.${name}`
     } else {
       if (obj.isInstancedMesh) {
         const geo = `${node}.geometry`
-        const mat = obj.material.name ? `materials${sanitizeName(obj.material.name)}` : `${node}.material`
+        const mat = obj.material!.name ? `materials${sanitizeName(obj.material!.name)}` : `${node}.material`
         type = 'instancedMesh'
         result = `<instancedMesh args={[${geo}, ${mat}, ${!obj.count ? `${node}.count` : obj.count}]} `
       } else {
@@ -398,11 +467,11 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     return result
   }
 
-  function printAnimations(animations) {
+  function printAnimations(animations: THREE.AnimationClip[]) {
     return animations.length ? `\nconst { actions } = useAnimations(animations, group)` : ''
   }
 
-  function parseExtras(extras) {
+  function parseExtras(extras: Record<string, unknown> | undefined) {
     if (extras) {
       return (
         Object.keys(extras)
@@ -413,9 +482,9 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
   }
 
   // Debug output and the header echo below go to stderr: stdout carries the JSX in --console mode.
-  function p(obj, line) {
+  function p(obj: SceneObject, line: number) {
     console.error(
-      [...new Array(line * 2)].map(() => ' ').join(''),
+      ' '.repeat(line * 2),
       obj.type,
       obj.name,
       'pos:',
@@ -432,7 +501,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
 
   if (options.debug) p(gltf.scene, 0)
 
-  let scene
+  let scene: string
   try {
     if (!options.keepgroups) {
       // Dry run to prune graph
@@ -444,8 +513,8 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
           // Making sure we don't add to a removed parent
           while (parent && parent.__removed) parent = parent.parent
           // If no parent was found it must be the root node
-          if (!parent) parent = gltf.scene
-          o.children.slice().forEach((child) => parent.add(child))
+          const newParent = parent ?? gltf.scene
+          o.children.slice().forEach((child) => newParent.add(child))
         }
       })
       // Remove deleted objects
@@ -456,7 +525,7 @@ function parse(gltf, { fileName = 'model', ...options } = {}) {
     // 2nd pass to eliminate hard to swat left-overs
     scene = print(gltf.scene)
   } catch (e) {
-    throw new Error('Error while parsing glTF: ' + e.message, { cause: e })
+    throw new Error('Error while parsing glTF: ' + (e as Error).message, { cause: e })
   }
   const header = `/*
 ${options.header ? options.header : 'Auto-generated by: https://github.com/pmndrs/gltfjsx'} ${
