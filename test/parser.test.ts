@@ -340,3 +340,32 @@ test('--console does not echo the header to stderr', async () => {
   const { stderr } = await quiet(() => parse(mesh('Box'), { console: true }))
   assert.equal(stderr, '')
 })
+
+// The printed rotation, as the quaternion R3F builds from it.
+function printedQuaternion(out: string) {
+  const m = out.match(/rotation=\{\[([^\]]*)\]\}/)
+  assert.ok(m, 'a rotation prop is printed')
+  const [x, y, z] = m[1]!
+    .split(',')
+    .filter((s) => s.trim())
+    .map((s) => Number(new Function(`return ${s}`)()))
+  return new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z))
+}
+
+test('a non-unit quaternion near gimbal lock prints the rotation of its normalised quaternion', async () => {
+  // y just short of π/2 (outside three.js's own gimbal-lock branch), with the length noise exporters
+  // leave in glTF rotations: unnormalised, it reads as gimbal lock and x/z collapse.
+  const unit = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.4, Math.PI / 2 - 1e-3, 1.1))
+  const node = mesh('Tilted')
+  // As GLTFLoader sets it: fromArray, no normalisation.
+  node.quaternion.fromArray(unit.toArray().map((v) => v * (1 + 2e-4)))
+  const out = await run(group('Root', node), { precision: 6 })
+  assert.ok(printedQuaternion(out).angleTo(unit) < 1e-4, out)
+})
+
+test('a unit quaternion prints the same rotation as three.js derives', async () => {
+  const node = mesh('Turned')
+  node.rotation.set(0.25, -0.5, 1)
+  const out = await run(group('Root', node), { precision: 6 })
+  assert.match(out, /rotation=\{\[0\.25, -0\.5, 1,?\s*\]\}/)
+})

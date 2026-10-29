@@ -96,6 +96,13 @@ async function parse(
   const objects: SceneObject[] = []
   gltf.scene.traverse((child) => objects.push(child))
 
+  // glTF requires unit quaternions, but exporters leave rounding noise in them. three.js derives the
+  // Euler `rotation` printed below from the raw quaternion, and near gimbal lock (y ≈ ±π/2) that noise
+  // turns into a large wrong rotation. Normalising re-derives the Euler; unit quaternions are untouched.
+  for (const child of objects) {
+    if (Math.abs(child.quaternion.lengthSq() - 1) > 1e-12) child.quaternion.normalize()
+  }
+
   // Browse for duplicates
   const duplicates = {
     materials: {} as Record<string, number>,
