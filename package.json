@@ -1,6 +1,6 @@
 {
   "name": "@elfsquad/gltfjsx",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "GLTF to JSX converter",
   "scripts": {
     "build": "vite build",

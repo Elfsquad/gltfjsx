@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.1](https://github.com/Elfsquad/gltfjsx/compare/v7.0.0...v7.0.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **parser:** normalise node quaternions before printing rotations ([#19](https://github.com/Elfsquad/gltfjsx/issues/19)) ([388c699](https://github.com/Elfsquad/gltfjsx/commit/388c69960de73d5aa830dc1e5d05bd0863df00f5))
+
 ## [7.0.0](https://github.com/Elfsquad/gltfjsx/compare/v6.6.2...v7.0.0) (2026-10-28)
 
 
