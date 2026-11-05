@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.2](https://github.com/Elfsquad/gltfjsx/compare/v7.0.1...v7.0.2) (2026-11-05)
+
+
+### Bug Fixes
+
+* **parser:** print scales to 6 significant digits, not precision decimals ([#21](https://github.com/Elfsquad/gltfjsx/issues/21)) ([000e775](https://github.com/Elfsquad/gltfjsx/commit/000e7755cff3a06e73cc8b34013b73a69d7dd9fc))
+
 ## [7.0.1](https://github.com/Elfsquad/gltfjsx/compare/v7.0.0...v7.0.1) (2026-10-29)
 
 
