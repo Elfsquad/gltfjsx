@@ -161,6 +161,11 @@ async function parse(
     return parseFloat(number.toFixed(Math.round(options.precision || 2)))
   }
 
+  // A scale is a ratio, so it keeps significant digits rather than `precision` decimals. At
+  // precision 3, a model scaled to metres lost its root scale: 0.0254 (inches) printed as 0.025,
+  // and a pt or µm root as scale={0}, which renders nothing.
+  const rScale = (number: number) => parseFloat(number.toPrecision(6))
+
   const rDeg = (number: number) => {
     const abs = Math.abs(Math.round(number * 100000))
     for (let i = 1; i <= 10; i++) {
@@ -277,9 +282,12 @@ async function parse(
       obj.scale.isVector3 &&
       !(rNbr(obj.scale.x) === 1 && rNbr(obj.scale.y) === 1 && rNbr(obj.scale.z) === 1)
     ) {
-      const rX = rNbr(obj.scale.x)
-      const rY = rNbr(obj.scale.y)
-      const rZ = rNbr(obj.scale.z)
+      // Whether a scale is printed at all is still decided at `precision` decimals (rNbr), as
+      // upstream does; only the value printed uses rScale. So 1.0004 is left out and 1.0006 is
+      // written as 1.0006.
+      const rX = rScale(obj.scale.x)
+      const rY = rScale(obj.scale.y)
+      const rZ = rScale(obj.scale.z)
       if (rX === rY && rX === rZ) {
         result += `scale={${rX}} `
       } else {
