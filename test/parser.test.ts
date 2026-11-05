@@ -369,3 +369,39 @@ test('a unit quaternion prints the same rotation as three.js derives', async () 
   const out = await run(group('Root', node), { precision: 6 })
   assert.match(out, /rotation=\{\[0\.25, -0\.5, 1,?\s*\]\}/)
 })
+
+test('scales keep 6 significant digits, so a metres scale on a root survives', async () => {
+  const scaled = (name: string, s: number) => {
+    const g = group(name, mesh(`${name}Part`))
+    g.scale.setScalar(s)
+    return g
+  }
+  // 0.0254 m per inch, 0.0254/72 m per pt (3.52778e-4), 1e-6 m per µm: precision 3 printed
+  // 0.025, 0 and 0, the last two hiding the whole model.
+  const out = await run(
+    group(
+      'Root',
+      scaled('Inch', 0.0254),
+      scaled('Point', 0.0254 / 72),
+      scaled('Micro', 1e-6),
+      scaled('Part', 1.23456789)
+    ),
+    { precision: 3, keepgroups: true }
+  )
+  const scaleOf = (part: string) =>
+    out.match(new RegExp(`scale=\\{([^}]*)\\}>\\s*<mesh geometry=\\{nodes\\.${part}\\.`))?.[1]
+  assert.equal(scaleOf('InchPart'), '0.0254')
+  assert.equal(scaleOf('PointPart'), '0.000352778')
+  assert.equal(scaleOf('MicroPart'), '0.000001')
+  assert.equal(scaleOf('PartPart'), '1.23457')
+})
+
+test('whether a scale is printed is still decided at precision decimals', async () => {
+  const a = mesh('Almost')
+  a.scale.setScalar(1.0004)
+  const b = mesh('Just')
+  b.scale.setScalar(1.0006)
+  const out = await run(group('Root', a, b), { precision: 3 })
+  assert.doesNotMatch(out, /nodes\.Almost[^>]*scale=/)
+  assert.match(out, /nodes\.Just[^>]*scale=\{1\.0006\}/)
+})
